@@ -52,14 +52,11 @@ services:
       - |
         npm install;
         npm run dev;
-    environment:
-      AUTH_KEYCLOAK_ISSUER: "https://idp.aimerzarashi.com/realms/demo"
-      AUTH_KEYCLOAK_CLIENT_ID: web
-      AUTH_KEYCLOAK_CLIENT_SECRET: 9kZHoBZTow3E8LXDuAJ1tunQNyDvtbGv
-      AUTH_KEYCLOAK_REDIRECT_URI: "https://web.aimerzarashi.com/api/auth/callback/keycloak"
   idp:
     networks:
       frontend:
+        aliases:
+          - idp.aimerzarashi.com
     image: bitnami/keycloak:24
     environment:
       KEYCLOAK_ADMIN_USER: user
@@ -69,12 +66,19 @@ services:
       KEYCLOAK_DATABASE_NAME: bitnami_keycloak
       KEYCLOAK_DATABASE_USER: bn_keycloak
       KEYCLOAK_DATABASE_PASSWORD: password
+      KC_HOSTNAME_STRICT_BACKCHANNEL: true
+      KEYCLOAK_PRODUCTION: true
+      KEYCLOAK_ENABLE_HTTPS: true
+      KEYCLOAK_HTTPS_USE_PEM: true
+      KEYCLOAK_HTTPS_CERTIFICATE_FILE: /opt/bitnami/keycloak/certs/tls.crt
+      KEYCLOAK_HTTPS_CERTIFICATE_KEY_FILE: /opt/bitnami/keycloak/certs/tls.key
       KC_HOSTNAME_URL: "https://idp.aimerzarashi.com"
       KC_HOSTNAME_ADMIN_URL: "https://idp.aimerzarashi.com"
-      # KC_HOSTNAME_STRICT_BACKCHANNEL: true
     depends_on:
       - db
       - smtp
+    volumes:
+      - ./idp/certs:/opt/bitnami/keycloak/certs
   db:
     networks:
       frontend:
