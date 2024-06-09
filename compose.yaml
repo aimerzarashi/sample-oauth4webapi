@@ -1,0 +1,65 @@
+services:
+  rproxy:
+    image: traefik:v3.0
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./rproxy:/etc/traefik:ro
+      - ./logs:/etc/logs
+    environment:
+      - TZ=Asia/Tokyo
+    command:
+      - --accesslog.fields.names.StartUTC=drop
+      - --providers.docker
+  whoami:
+    image: traefik/whoami
+  web:
+    image: node:20-alpine3.18
+    ports:
+      - 3000:3000
+    depends_on:
+      - idp
+    volumes:
+      - ./web:/app
+    tty: true
+    working_dir: /app
+    command:
+      - "sh"
+      - "-c"
+      - |
+        npm install;
+        npm run dev;
+  idp:
+    image: bitnami/keycloak:24
+    environment:
+      KEYCLOAK_ADMIN_USER: user
+      KEYCLOAK_ADMIN_PASSWORD: bitnami
+      KEYCLOAK_DATABASE_HOST: db
+      KEYCLOAK_DATABASE_PORT: 5432
+      KEYCLOAK_DATABASE_NAME: bitnami_keycloak
+      KEYCLOAK_DATABASE_USER: bn_keycloak
+      KEYCLOAK_DATABASE_PASSWORD: password
+      KC_HOSTNAME_URL: "https://idp.aimerzarashi.com"
+      KC_HOSTNAME_ADMIN_URL: "https://idp.aimerzarashi.com"
+      KC_HOSTNAME_STRICT_BACKCHANNEL: true
+    depends_on:
+      - db
+      - smtp
+  db:
+    container_name: db
+    image: postgres:16.3
+    ports:
+      - 5432:5432
+    restart: always
+    environment:
+      POSTGRES_USER: bn_keycloak
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: bitnami_keycloak
+    volumes:
+      - ./db/data:/var/lib/postgresql/data
+  smtp:
+    image: mailhog/mailhog
+    ports:
+      - 1025:1025

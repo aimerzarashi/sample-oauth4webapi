@@ -1,0 +1,52 @@
+http:
+  routers:
+    traefik:
+      rule: "Host(`traefik.aimerzarashi.com`)"
+      service: api@internal
+      tls:
+        options: client-auth@file
+    whoami:
+      rule: "Host(`whoami.aimerzarashi.com`)"
+      service: whoami
+      tls:
+        options: client-auth@file
+    web:
+      rule: "Host(`web.aimerzarashi.com`)"
+      service: web
+      tls: {}
+    idp:
+      rule: "Host(`idp.aimerzarashi.com`)"
+      service: idp
+      tls: {}
+    smtp:
+      rule: "Host(`smtp.aimerzarashi.com`)"
+      service: smtp
+      tls: {}
+  services:
+    whoami:
+      loadBalancer:
+        servers:
+          - url: http://whoami:80
+    web:
+      loadBalancer:
+        servers:
+          - url: http://web:3000
+    idp:
+      loadBalancer:
+        servers:
+          - url: http://idp:8080
+    smtp:
+      loadBalancer:
+        servers:
+          - url: http://smtp:8025
+tls:
+  certificates:
+    - certFile: /etc/traefik/certs/server/server.pem
+      keyFile: /etc/traefik/certs/server/server.key
+  options:
+    client-auth:
+      clientAuth:
+        caFiles:
+          - /etc/traefik/certs/client/rootCA2.pem
+          - /etc/traefik/certs/client/inCA2.pem
+        clientAuthType: RequireAndVerifyClientCert

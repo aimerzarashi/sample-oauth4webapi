@@ -1,0 +1,16 @@
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "sqltools.connections": [
+    {
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "username": "bn_keycloak",
+      "password": "password",
+      "database": "bitnami_keycloak",
+      "name": "bitnami_keycloak"
+    }
+  ]
+}
