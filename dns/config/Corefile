@@ -1,0 +1,11 @@
+aimerzarashi.com {
+    hosts /etc/coredns/hosts aimerzarashi.com
+    errors
+    log
+}
+
+. {
+    forward . 8.8.8.8:53
+    errors
+    log
+}

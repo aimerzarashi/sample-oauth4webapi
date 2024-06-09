@@ -1,5 +1,20 @@
+networks:
+  frontend:
+    external: true
+
 services:
+  dns:
+    networks:
+      frontend:
+        ipv4_address: $DNS_IP
+    image: coredns/coredns:1.11.1
+    container_name: dns
+    volumes:
+      - "./dns/config:/etc/coredns"
+    command: "-conf /etc/coredns/Corefile"
   rproxy:
+    networks:
+      frontend:
     image: traefik:v3.0
     ports:
       - 80:80
@@ -14,8 +29,14 @@ services:
       - --accesslog.fields.names.StartUTC=drop
       - --providers.docker
   whoami:
+    networks:
+      frontend:
     image: traefik/whoami
   web:
+    networks:
+      frontend:
+    dns:
+      - $DNS_IP
     image: node:20-alpine3.18
     ports:
       - 3000:3000
@@ -31,7 +52,14 @@ services:
       - |
         npm install;
         npm run dev;
+    environment:
+      AUTH_KEYCLOAK_ISSUER: "https://idp.aimerzarashi.com/realms/demo"
+      AUTH_KEYCLOAK_CLIENT_ID: web
+      AUTH_KEYCLOAK_CLIENT_SECRET: 9kZHoBZTow3E8LXDuAJ1tunQNyDvtbGv
+      AUTH_KEYCLOAK_REDIRECT_URI: "https://web.aimerzarashi.com/api/auth/callback/keycloak"
   idp:
+    networks:
+      frontend:
     image: bitnami/keycloak:24
     environment:
       KEYCLOAK_ADMIN_USER: user
@@ -41,20 +69,15 @@ services:
       KEYCLOAK_DATABASE_NAME: bitnami_keycloak
       KEYCLOAK_DATABASE_USER: bn_keycloak
       KEYCLOAK_DATABASE_PASSWORD: password
-      KC_HOSTNAME_STRICT_BACKCHANNEL: true
-      KEYCLOAK_PRODUCTION: true
-      KEYCLOAK_ENABLE_HTTPS: true
-      KEYCLOAK_HTTPS_USE_PEM: true
-      KEYCLOAK_HTTPS_CERTIFICATE_FILE: /opt/bitnami/keycloak/certs/tls.crt
-      KEYCLOAK_HTTPS_CERTIFICATE_KEY_FILE: /opt/bitnami/keycloak/certs/tls.key
       KC_HOSTNAME_URL: "https://idp.aimerzarashi.com"
       KC_HOSTNAME_ADMIN_URL: "https://idp.aimerzarashi.com"
+      # KC_HOSTNAME_STRICT_BACKCHANNEL: true
     depends_on:
       - db
       - smtp
-    volumes:
-      - ./idp/certs:/opt/bitnami/keycloak/certs
   db:
+    networks:
+      frontend:
     container_name: db
     image: postgres:16.3
     ports:
@@ -67,6 +90,8 @@ services:
     volumes:
       - ./db/data:/var/lib/postgresql/data
   smtp:
+    networks:
+      frontend:
     image: mailhog/mailhog
     ports:
       - 1025:1025

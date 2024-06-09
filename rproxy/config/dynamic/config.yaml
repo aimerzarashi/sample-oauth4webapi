@@ -34,7 +34,7 @@ http:
     idp:
       loadBalancer:
         servers:
-          - url: http://idp:8080
+          - url: https://idp:8443
     smtp:
       loadBalancer:
         servers:
