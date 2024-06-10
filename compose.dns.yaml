@@ -1,5 +1,6 @@
 networks:
   frontend:
+    name: frontend
     external: true
 
 services:
@@ -9,12 +10,16 @@ services:
         ipv4_address: $DNS_IP
     image: coredns/coredns:1.11.1
     container_name: dns
+    working_dir: /etc/coredns
     volumes:
       - "./dns/config:/etc/coredns"
-    command: "-conf /etc/coredns/Corefile"
+    command: "-conf Corefile"
+    environment:
+      LB_IP: $LB_IP
   rproxy:
     networks:
       frontend:
+        ipv4_address: $LB_IP
     image: traefik:v3.0
     ports:
       - 80:80
@@ -55,8 +60,8 @@ services:
   idp:
     networks:
       frontend:
-        aliases:
-          - idp.aimerzarashi.com
+    dns:
+      - $DNS_IP
     image: bitnami/keycloak:24
     environment:
       KEYCLOAK_ADMIN_USER: user
@@ -67,11 +72,11 @@ services:
       KEYCLOAK_DATABASE_USER: bn_keycloak
       KEYCLOAK_DATABASE_PASSWORD: password
       KC_HOSTNAME_STRICT_BACKCHANNEL: true
-      KEYCLOAK_PRODUCTION: true
-      KEYCLOAK_ENABLE_HTTPS: true
-      KEYCLOAK_HTTPS_USE_PEM: true
-      KEYCLOAK_HTTPS_CERTIFICATE_FILE: /opt/bitnami/keycloak/certs/tls.crt
-      KEYCLOAK_HTTPS_CERTIFICATE_KEY_FILE: /opt/bitnami/keycloak/certs/tls.key
+      # KEYCLOAK_PRODUCTION: true
+      # KEYCLOAK_ENABLE_HTTPS: true
+      # KEYCLOAK_HTTPS_USE_PEM: true
+      # KEYCLOAK_HTTPS_CERTIFICATE_FILE: /opt/bitnami/keycloak/certs/server.pem
+      # KEYCLOAK_HTTPS_CERTIFICATE_KEY_FILE: /opt/bitnami/keycloak/certs/server.key
       KC_HOSTNAME_URL: "https://idp.aimerzarashi.com"
       KC_HOSTNAME_ADMIN_URL: "https://idp.aimerzarashi.com"
     depends_on:

@@ -1,11 +1,14 @@
-aimerzarashi.com {
-    hosts /etc/coredns/hosts aimerzarashi.com
-    errors
+. {
     log
+    forward . /etc/resolv.conf
 }
 
-. {
-    forward . 8.8.8.8:53
-    errors
+aimerzarashi.com {
+    cache
     log
+    hosts {
+        {$LB_IP} idp.aimerzarashi.com
+        fallthrough
+    }
+    errors
 }
