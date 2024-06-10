@@ -72,11 +72,11 @@ services:
       KEYCLOAK_DATABASE_USER: bn_keycloak
       KEYCLOAK_DATABASE_PASSWORD: password
       KC_HOSTNAME_STRICT_BACKCHANNEL: true
-      # KEYCLOAK_PRODUCTION: true
-      # KEYCLOAK_ENABLE_HTTPS: true
-      # KEYCLOAK_HTTPS_USE_PEM: true
-      # KEYCLOAK_HTTPS_CERTIFICATE_FILE: /opt/bitnami/keycloak/certs/server.pem
-      # KEYCLOAK_HTTPS_CERTIFICATE_KEY_FILE: /opt/bitnami/keycloak/certs/server.key
+      KEYCLOAK_PRODUCTION: true
+      KEYCLOAK_ENABLE_HTTPS: true
+      KEYCLOAK_HTTPS_USE_PEM: true
+      KEYCLOAK_HTTPS_CERTIFICATE_FILE: /opt/bitnami/keycloak/certs/server.pem
+      KEYCLOAK_HTTPS_CERTIFICATE_KEY_FILE: /opt/bitnami/keycloak/certs/server.key
       KC_HOSTNAME_URL: "https://idp.aimerzarashi.com"
       KC_HOSTNAME_ADMIN_URL: "https://idp.aimerzarashi.com"
     depends_on:
