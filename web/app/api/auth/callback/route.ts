@@ -43,8 +43,13 @@ export async function GET(request: Request) {
     throw new Error() // Handle WWW-Authenticate Challenges as needed
   }
 
-  const nonce = cookies().get("code_verifier")?.value ?? "";
-  const result = await oauth.processAuthorizationCodeOpenIDResponse(as, client, response, nonce)
+  let result: oauth.OAuth2Error | oauth.OpenIDTokenEndpointResponse;
+  if (as.code_challenge_methods_supported?.includes('S256') !== true) {
+    result = await oauth.processAuthorizationCodeOpenIDResponse(as, client, response, cookies().get("nonce")?.value)
+  }
+  else {
+    result = await oauth.processAuthorizationCodeOpenIDResponse(as, client, response)
+  }
   if (oauth.isOAuth2Error(result)) {
     console.error('Error Response', result)
     throw new Error() // Handle OAuth 2.0 response body error
