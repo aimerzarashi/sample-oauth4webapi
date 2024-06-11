@@ -3,8 +3,6 @@ import { cookies } from 'next/headers'
 import * as oauth from "oauth4webapi";
 
 export async function GET(request: Request) {
-  console.log("callback start");
-
   const issuer: URL = new URL(process.env.AUTH_KEYCLOAK_ISSUER!);
   const client_id: string = process.env.AUTH_KEYCLOAK_CLIENT_ID!;
   const client_secret: string = process.env.AUTH_KEYCLOAK_CLIENT_SECRET!;
@@ -20,9 +18,7 @@ export async function GET(request: Request) {
     token_endpoint_auth_method: 'client_secret_basic',
   }
 
-  // const code_verifier = oauth.generateRandomCodeVerifier();
-  const code_verifier = "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
-
+  const code_verifier = cookies().get("code_verifier")?.value ?? "";
   const currentURL = new URL(request.url);
 
   const params = oauth.validateAuthResponse(as, client, currentURL);
@@ -47,8 +43,8 @@ export async function GET(request: Request) {
     throw new Error() // Handle WWW-Authenticate Challenges as needed
   }
 
-  const nonce = "7b880da2-53b4-4c24-b5d4-23f3a55d6e00";
-  const result = await oauth.processAuthorizationCodeOpenIDResponse(as, client, response)
+  const nonce = cookies().get("code_verifier")?.value ?? "";
+  const result = await oauth.processAuthorizationCodeOpenIDResponse(as, client, response, nonce)
   if (oauth.isOAuth2Error(result)) {
     console.error('Error Response', result)
     throw new Error() // Handle OAuth 2.0 response body error
@@ -73,7 +69,6 @@ export async function GET(request: Request) {
   const userResult = await oauth.processUserInfoResponse(as, client, sub, userResponse)
   console.log('UserInfo Response', userResult)
 
-  console.log("callback end");
   return NextResponse.json({
     result: result,
     id_token: claims,

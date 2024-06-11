@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import * as oauth from "oauth4webapi";
 
 export async function GET() {
-  // console.log(process.env);
-  console.log("authorization request start");
-
   const issuer: URL = new URL(process.env.AUTH_KEYCLOAK_ISSUER!);
   const client_id: string = process.env.AUTH_KEYCLOAK_CLIENT_ID!;
   const client_secret: string = process.env.AUTH_KEYCLOAK_CLIENT_SECRET!;
@@ -23,8 +21,7 @@ export async function GET() {
 
   const code_challenge_method = 'S256'
 
-  // const code_verifier = oauth.generateRandomCodeVerifier();
-  const code_verifier = "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
+  const code_verifier = oauth.generateRandomCodeVerifier();
   const code_challenge = await oauth.calculatePKCECodeChallenge(code_verifier);
 
   if (as.authorization_endpoint === undefined) {
@@ -41,11 +38,25 @@ export async function GET() {
   authorizationUrl.searchParams.set('code_challenge_method', code_challenge_method);
 
   if (as.code_challenge_methods_supported?.includes('S256') !== true) {
-    // const nonce = oauth.generateRandomNonce()
-    const nonce = "7b880da2-53b4-4c24-b5d4-23f3a55d6e00";
+    const nonce = oauth.generateRandomNonce()
     authorizationUrl.searchParams.set('nonce', nonce);
   }
 
-  console.log("authorization request end");
+  cookies().set("code_verifier", code_verifier, {
+    path: "/",
+    secure: process.env.NODE_ENV === "production",
+    httpOnly: true,
+    maxAge: 60 * 1,
+    sameSite: "lax"
+  });
+
+  cookies().set("nonce", code_verifier, {
+    path: "/",
+    secure: process.env.NODE_ENV === "production",
+    httpOnly: true,
+    maxAge: 60 * 1,
+    sameSite: "lax"
+  });
+
   return NextResponse.redirect(authorizationUrl.href);
 }
